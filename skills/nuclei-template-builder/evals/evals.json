@@ -1,0 +1,23 @@
+{
+  "skill_name": "nuclei-template-builder",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Write a nuclei template that detects exposed .env files on web servers. It should check for common environment variable patterns like DB_PASSWORD, API_KEY, SECRET_KEY in the response body, and make sure the status code is 200. Use appropriate severity and tags.",
+      "expected_output": "A complete nuclei template YAML with id, info block (medium severity, tags: exposure,config,env), HTTP GET to {{BaseURL}}/.env, word matchers with condition:and for status 200 + env variable patterns",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "I need a nuclei template for CVE-2021-44228 (Log4Shell). It should send a payload in common injection points (User-Agent, X-Forwarded-For, Referer headers) using the interactsh OOB callback to detect if the target is vulnerable. Include proper CVE classification metadata.",
+      "expected_output": "A complete template with CVE ID, critical severity, classification block with CVSS/CWE, raw HTTP request with {{interactsh-url}} JNDI payloads in multiple headers, interactsh_protocol DNS matcher, proper references to NVD/advisory",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Create a multi-step nuclei template that first checks if a target runs WordPress (by looking for wp-login.php), and only if confirmed, attempts to detect the wp-config.php.bak backup file. Use flow for conditional execution and internal matchers on the first request.",
+      "expected_output": "A template using flow: http(1) && http(2), first request to /wp-login.php with internal:true matcher for WordPress keyword, second request to /wp-config.php.bak with matchers for DB_NAME/DB_PASSWORD patterns, proper severity (high), tags including wordpress,backup,exposure",
+      "files": []
+    }
+  ]
+}

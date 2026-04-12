@@ -1,0 +1,52 @@
+id: wordpress-config-backup
+
+info:
+  name: WordPress Config Backup File Exposure
+  author: claude
+  severity: high
+  description: |
+    Detects exposed wp-config.php.bak backup files on WordPress installations.
+    These backup files may contain database credentials, authentication keys,
+    and other sensitive configuration values.
+  reference:
+    - https://wordpress.org/documentation/article/editing-wp-config-php/
+  metadata:
+    max-request: 2
+  tags: wordpress,backup,exposure,misconfig
+
+flow: http(1) && http(2)
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/wp-login.php"
+
+    matchers:
+      - type: word
+        words:
+          - "WordPress"
+          - "wp-login"
+        condition: or
+        internal: true
+
+  - method: GET
+    path:
+      - "{{BaseURL}}/wp-config.php.bak"
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+
+      - type: word
+        words:
+          - "DB_NAME"
+          - "DB_PASSWORD"
+          - "DB_HOST"
+        condition: or
+
+      - type: word
+        words:
+          - "<?php"
+        part: body

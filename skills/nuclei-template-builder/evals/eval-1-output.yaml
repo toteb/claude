@@ -1,0 +1,57 @@
+id: env-file-exposure
+
+info:
+  name: Exposed .env File Detection
+  author: autonomous
+  severity: high
+  description: |
+    Detects publicly accessible .env files on web servers that contain sensitive
+    environment variables such as database credentials, API keys, and secret keys.
+    Exposure of .env files can lead to full application compromise.
+  reference:
+    - https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/05-Enumerate_Infrastructure_and_Application_Admin_Interfaces
+  metadata:
+    max-request: 1
+    shodan-query: 'http.title:"Index of /"'
+  tags: exposure,misconfig,env,devops
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/.env"
+    redirects: true
+    max-redirects: 3
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+
+      - type: word
+        part: body
+        words:
+          - "DB_PASSWORD"
+          - "API_KEY"
+          - "SECRET_KEY"
+          - "APP_KEY"
+          - "DATABASE_URL"
+          - "AWS_SECRET_ACCESS_KEY"
+        condition: or
+
+      - type: regex
+        part: body
+        regex:
+          - "(?i)(DB_PASSWORD|API_KEY|SECRET_KEY|APP_KEY|AWS_SECRET_ACCESS_KEY|DATABASE_URL)\\s*=\\s*\\S+"
+
+      - type: word
+        part: header
+        words:
+          - "text/html"
+        negative: true
+
+    extractors:
+      - type: regex
+        part: body
+        regex:
+          - "(?i)(DB_PASSWORD|DB_HOST|DB_USERNAME|API_KEY|SECRET_KEY|APP_KEY|AWS_SECRET_ACCESS_KEY|AWS_ACCESS_KEY_ID|DATABASE_URL|MAIL_PASSWORD|REDIS_PASSWORD)\\s*="
